@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:micky/themes.dart';
@@ -21,6 +22,8 @@ class _HomePageState extends State<HomePage> {
   final OpenAIService openAIService = OpenAIService();
   String? generatedContent;
   String? generatedImgUrl;
+  int start = 200;
+  int delay = 200;
 
   @override
   void initState() {
@@ -77,104 +80,140 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Micky'),
+        title: BounceInDown(child: const Text('Micky')),
         centerTitle: true,
         leading: const Icon(Icons.menu),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Center(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                height: 120,
-                width: 120,
+            ZoomIn(
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo1.png',
+                  height: 120,
+                  width: 120,
+                ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
-                top: 30,
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(color: Pallete.borderColor),
-                borderRadius:
-                    BorderRadius.circular(20).copyWith(topLeft: Radius.zero),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(
-                  generatedContent == null
-                      ? "Hey! What task can I do for you?"
-                      : generatedContent!,
-                  style: TextStyle(
-                    color: Pallete.mainFontColor,
-                    fontSize: generatedContent == null ? 20 : 17,
+            FadeInRight(
+              child: Visibility(
+                visible: generatedImgUrl == null,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
+                    top: 30,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Pallete.borderColor),
+                    borderRadius: BorderRadius.circular(20)
+                        .copyWith(topLeft: Radius.zero),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: Text(
+                      generatedContent == null
+                          ? "Hey! What task can I do for you?"
+                          : generatedContent!,
+                      style: TextStyle(
+                        color: Pallete.mainFontColor,
+                        fontSize: generatedContent == null ? 20 : 17,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.only(top: 10, left: 22),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Here are few Features',
-                style: TextStyle(
-                  color: Pallete.mainFontColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+            if (generatedImgUrl != null)
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.network(generatedImgUrl!),
+                ),
+              ),
+            SlideInLeft(
+              child: Visibility(
+                visible: generatedContent == null && generatedImgUrl == null,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  margin: const EdgeInsets.only(top: 10, left: 22),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Here are few Features',
+                    style: TextStyle(
+                      color: Pallete.mainFontColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
               ),
             ),
-            Column(
-              children: const [
-                FeatureBox(
-                  headerText: 'ChatGPT',
-                  description:
-                      'A Smarter way to stay organized and informed with ChatGPT',
-                ),
-                FeatureBox(
-                  headerText: 'Dall-E',
-                  description:
-                      'Get inspired and stay creative with your personal assistant powered by Dall-E',
-                ),
-                FeatureBox(
-                  headerText: 'Smart Voice Assistant',
-                  description:
-                      'Get the best of both worlds with a voice assistant powered by ChatGPT and Dall-E',
-                ),
-              ],
+            Visibility(
+              visible: generatedContent == null && generatedImgUrl == null,
+              child: Column(
+                children: [
+                  SlideInLeft(
+                    delay: Duration(milliseconds: start),
+                    child: const FeatureBox(
+                      headerText: 'ChatGPT',
+                      description:
+                          'A Smarter way to stay organized and informed with ChatGPT',
+                    ),
+                  ),
+                  SlideInLeft(
+                    delay: Duration(milliseconds: start + delay),
+                    child: const FeatureBox(
+                      headerText: 'Dall-E',
+                      description:
+                          'Get inspired and stay creative with your personal assistant powered by Dall-E',
+                    ),
+                  ),
+                  SlideInLeft(
+                    delay: Duration(milliseconds: start + 2 * delay),
+                    child: const FeatureBox(
+                      headerText: 'Smart Voice Assistant',
+                      description:
+                          'Get the best of both worlds with a voice assistant powered by ChatGPT and Dall-E',
+                    ),
+                  ),
+                ],
+              ),
             )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Pallete.buttonColor,
-        onPressed: () async {
-          if (await speechToText.hasPermission && speechToText.isNotListening) {
-            await startListening();
-            print("Speak: $lastWords");
-          } else if (speechToText.isListening) {
-            final speech = await openAIService.isArtPromptAPI(lastWords);
-            if (speech.contains('https')) {
-              generatedImgUrl = speech;
-              generatedContent = null;
-              setState(() {});
+      floatingActionButton: ZoomIn(
+        child: FloatingActionButton(
+          backgroundColor: Pallete.buttonColor,
+          onPressed: () async {
+            if (await speechToText.hasPermission &&
+                speechToText.isNotListening) {
+              await startListening();
+              print("Speak: $lastWords");
+            } else if (speechToText.isListening) {
+              final speech = await openAIService.isArtPromptAPI(lastWords);
+              if (speech.contains('https')) {
+                generatedImgUrl = speech;
+                generatedContent = null;
+                setState(() {});
+              } else {
+                generatedImgUrl = null;
+                generatedContent = speech;
+                setState(() {});
+                await systemSpeak(
+                    speech); //system speaks only when there's no dall-e
+              }
+              await stopListening();
             } else {
-              generatedImgUrl = null;
-              generatedContent = speech;
-              setState(() {});
-              await systemSpeak(
-                  speech); //system speaks only when there's no dall-e
+              initSpeechToText();
             }
-            await stopListening();
-          } else {
-            initSpeechToText();
-          }
-        },
-        child: const Icon(
-          Icons.mic,
+          },
+          child: Icon(
+            speechToText.isListening ? Icons.stop : Icons.mic,
+          ),
         ),
       ),
     );
